@@ -1,0 +1,5 @@
+# Python dependencies for intelligence-core
+# Example:
+# numpy
+# tensorflow
+# scikit-learn

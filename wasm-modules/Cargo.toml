@@ -1,0 +1,13 @@
+[package]
+name = "wasm-modules"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"] # For WASM output
+
+[dependencies]
+
+[[test]]
+name = "lib_test"
+path = "src/lib_test.rs"

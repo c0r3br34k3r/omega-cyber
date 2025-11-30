@@ -1,0 +1,11 @@
+[package]
+name = "trust-fabric"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sha2 = "0.10"
+
+[[test]]
+name = "blockchain_test"
+path = "src/blockchain_test.rs"

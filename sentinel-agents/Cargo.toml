@@ -1,0 +1,11 @@
+[package]
+name = "sentinel-agents"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] } # For async runtime
+
+[[test]]
+name = "rust_agent_test"
+path = "src/rust_agent_test.rs"

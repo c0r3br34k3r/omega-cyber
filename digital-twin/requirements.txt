@@ -1,0 +1,4 @@
+# Python dependencies for digital-twin (Unreal Engine integration)
+# Example:
+# unrealcv
+# grpcio

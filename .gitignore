@@ -1,0 +1,40 @@
+# .gitignore for Omega project
+
+# Ignore build artifacts
+target/
+**/target/
+**/*.o
+**/*.a
+
+# Ignore Go modules cache
+pkg/
+
+# Ignore Python virtual environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Ignore Node.js modules
+node_modules/
+**/node_modules/
+package-lock.json
+
+# Ignore Elixir build artifacts
+_build/
+deps/
+
+# Ignore Scala build artifacts
+target/
+
+# Ignore IDE files
+.idea/
+.vscode/
+*.iml
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore test files
+scripting/test.lua

@@ -1,0 +1,9 @@
+# Python dependencies for human-threat-modeling
+# Example:
+# Behavioral analysis, social engineering, attacker persona simulation using LLMs
+
+transformers
+torch # or tensorflow
+scikit-learn
+nltk
+spacy
