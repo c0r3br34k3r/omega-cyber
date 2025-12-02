@@ -1,13 +1,66 @@
 {
+  "//": "This tsconfig.json is for the main application source code.",
+  "extends": "@tsconfig/vite-react/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
-    "outDir": "./dist",
+    // --- Project Structure & Resolution ---
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/state/*": ["./src/state/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/gen/*": ["./src/gen/*"]
+    },
+    "composite": true, // Enables building this project as part of a larger composite project.
+    "resolveJsonModule": true,
+    "useDefineForClassFields": true,
+
+    // --- Module System (Vite/Bundler-centric) ---
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "isolatedModules": true, // Required by Vite
+
+    // --- Output & Environment ---
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext", "WebWorker"],
+    "jsx": "react-jsx",
+    "noEmit": true, // Vite handles transpilation, tsc is for type checking only.
+
+    // --- Maximum Strictness & Code Quality ---
+    // This section enables all strict checks and adds more for enterprise-grade safety.
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    // A key feature for robustness: forces checks for `undefined` on array and object access.
+    "noUncheckedIndexedAccess": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+
+    // --- Interoperability ---
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true, // Prevents issues on case-sensitive filesystems.
+    "skipLibCheck": true // Skips type checking of declaration files in node_modules.
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src",
+    "stories",
+    "vite.config.ts",
+    "tailwind.config.js",
+    "postcss.config.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage"
+  ],
+  "references": [
+    // This creates a "composite project", allowing different TS configs for different parts of the app.
+    // tsconfig.node.json handles Node.js-specific files like build scripts.
+    { "path": "./tsconfig.node.json" }
+  ]
 }

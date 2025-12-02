@@ -1,13 +1,80 @@
+# Cargo.toml for Omega WASM Modules
+# ==============================================================================
+#
+# This file defines the build configuration and dependencies for a dynamically
+# loadable WebAssembly (WASM) module. These modules provide extensible,
+# sandboxed logic for components like the Sentinel Agent.
+#
+# ==============================================================================
+
 [package]
-name = "wasm-modules"
-version = "0.1.0"
+name = "omega-wasm-module"
+version = "0.2.0"
 edition = "2021"
+authors = ["Omega Platform Engineering <contact@omega-cyber.io>"]
+description = "A dynamically loadable WASM module for the Omega Sentinel Agent, providing advanced, sandboxed anomaly detection logic."
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/omega-cyber/omega/tree/main/wasm-modules"
 
 [lib]
-crate-type = ["cdylib"] # For WASM output
+# "cdylib" is for creating a C-style dynamic library, which is the standard
+# format for WebAssembly modules that will be loaded by a non-Rust host.
+# "rlib" is the standard Rust library format, useful for testing.
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+# --- Core WASM Interoperability ---
+# `wasm-bindgen` facilitates high-level interactions between Wasm modules
+# and the host environment (e.g., JavaScript or a Rust host with a JS-like ABI).
+wasm-bindgen = "0.2.87"
 
-[[test]]
-name = "lib_test"
-path = "src/lib_test.rs"
+# --- Serialization & Deserialization ---
+# For passing complex data structures (like telemetry events) between the
+# host and the WASM module.
+serde = { version = "1.0", features = ["derive"] }
+# `serde-wasm-bindgen` provides a bridge between Serde and wasm-bindgen.
+serde-wasm-bindgen = "0.6"
+
+# --- Data Structures & Performance ---
+# For stack-allocated vectors, which can be more performant for small collections.
+smallvec = "1.11"
+# A faster hasher for hashmaps where cryptographic security is not a concern.
+nohash-hasher = "0.2"
+
+# --- Logic & Computation ---
+# For complex pattern matching in telemetry data (e.g., analyzing log strings).
+regex = "1.10"
+# For numerical computation if the WASM module is performing ML inference.
+# `ndarray` can be compiled to WASM.
+ndarray = { version = "0.15", default-features = false } # Disable std for no-std environments
+
+# --- Error Handling ---
+thiserror = "1.0"
+
+# --- Logging ---
+# Provides a facade for logging that can be implemented by the WASM host.
+log = "0.4"
+# A simple logger that sends log messages to the `console.log` function in JS.
+console_log = "1.0"
+# `wasm-bindgen-console` provides a more direct binding.
+wasm-bindgen-console-logger = "0.1"
+
+
+# --- WASM-specific utilities ---
+# Provides access to `window`, `document`, etc., in a browser-like environment.
+# While our host is Rust, wasm-bindgen often uses a JS-like ABI.
+web-sys = { version = "0.3", features = ["console"] }
+
+
+[dev-dependencies]
+# For testing WASM code.
+wasm-bindgen-test = "0.3"
+
+# --- Release Profile Optimizations ---
+# These settings are crucial for producing small, efficient WASM binaries.
+[profile.release]
+opt-level = 'z'        # Optimize for size.
+lto = true             # Enable Link-Time Optimization.
+codegen-units = 1      # Maximize optimization opportunities by using a single codegen unit.
+panic = 'abort'        # Abort on panic to reduce binary size (no stack unwinding code).
+strip = true           # Strip debug symbols.

@@ -1,5 +1,77 @@
-# Python dependencies for intelligence-core
-# Example:
-# numpy
-# tensorflow
-# scikit-learn
+# ==============================================================================
+# OMEGA PLATFORM - INTELLIGENCE CORE (PYTHON) DEPENDENCIES
+# ==============================================================================
+#
+# This file lists all core Python packages required for the Intelligence Core's
+# AI/ML, data processing, and microservice components. It emphasizes GPU-accelerated
+# deep learning, graph neural networks, large language models, and real-time
+# data streaming.
+#
+# --- Core Scientific Computing & Data Handling ---
+numpy==1.26.2
+scipy==1.11.3
+pandas==2.1.2
+pyarrow==14.0.1           # For efficient data serialization/deserialization
+# feather-format           # For even faster interchange
+
+# --- Deep Learning & AI (GPU-Accelerated) ---
+# NOTE: For GPU support, install `tensorflow-gpu` or `torch-cuda` based on your
+# CUDA setup. These are usually installed separately to match specific hardware
+# and driver configurations.
+tensorflow==2.15.0        # Google's Deep Learning Framework (CPU-only version)
+keras==2.15.0             # Deep learning API for TensorFlow
+# torch==2.1.0            # PyTorch (alternative DL framework, CPU-only)
+# torchvision==0.16.0
+# torchaudio==2.1.0
+transformers==4.35.0      # Hugging Face Transformers for LLMs (e.g., fine-tuned models)
+dgl==1.1.2                # Deep Graph Library for Graph Neural Networks
+# dglgo                   # DGL for Go (if integrating with Go components)
+# pyg_lib                 # PyTorch Geometric library (alternative GNN framework)
+gymnasium==0.29.1         # Successor to OpenAI Gym for Reinforcement Learning environments
+stable-baselines3==2.2.1  # Advanced RL algorithms (PPO, A2C, SAC, etc.)
+scikit-learn==1.3.2       # Traditional ML algorithms for anomaly detection, classification
+jamo==0.4.1                  # For Korean phonetic (Jamo) decomposition and composition
+onnx==1.15.0              # Open Neural Network Exchange format
+onnxruntime==1.16.1       # ONNX Runtime for efficient model inference
+
+# --- Data Streaming & Messaging ---
+confluent-kafka[librdkafka]==2.3.0 # High-throughput Kafka client
+# kafka-python                     # Alternative Kafka client
+grpcio==1.59.0            # gRPC core library for high-performance RPC
+grpcio-tools==1.59.0      # gRPC tools for protobuf compilation
+
+# --- Graph Databases (if externalizing knowledge graph) ---
+# py2neo==2023.1.2         # Client for Neo4j Graph Database
+# neo4j==5.14.0            # Neo4j Python driver
+
+# --- Data Validation & Configuration ---
+pydantic==2.5.0           # Data validation and settings management
+pydantic-settings==2.1.0  # For managing application settings with Pydantic
+
+# --- Database & Persistence ---
+sqlalchemy==2.0.23        # ORM for interacting with databases
+psycopg2-binary==2.9.9    # PostgreSQL adapter for SQLAlchemy
+alembic==1.12.1           # Database migration tool for SQLAlchemy
+
+# --- Utilities & Logging ---
+structlog==23.2.0         # Structured logging for better observability
+python-dotenv==1.0.0      # For loading environment variables
+pyyaml==6.0.1             # YAML parser/emitter for configuration
+
+# --- Development & Testing Tools ---
+pytest==7.4.3
+pytest-asyncio==0.23.1    # For testing asynchronous code
+pytest-cov==4.1.0
+flake8==6.1.0
+black==23.10.1
+isort==5.12.0
+mypy==1.6.1
+pre-commit==3.5.0
+jupyterlab==4.0.9         # For interactive development and experimentation
+matplotlib==3.8.1         # For plotting and visualization during development
+seaborn==0.13.0           # High-level statistical data visualization
+
+# --- Quantum Computing / Optimization Libraries (if applicable) ---
+# qiskit                   # IBM's quantum computing framework
+# pennylane                # Xanadu's quantum machine learning library
+# dwave-ocean-sdk          # D-Wave's quantum annealing SDK

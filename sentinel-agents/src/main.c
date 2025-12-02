@@ -1,49 +1,160 @@
+/**
+ * ==============================================================================
+ * OMEGA PLATFORM - SENTINEL AGENT (C/C++/RUST/ZIG POLYGLOT)
+ * ==============================================================================
+ *
+ * This file contains the main entry point for the C-based orchestrator of the
+ * Sentinel Agent. It demonstrates a polyglot architecture where C is used for
+ *
+ * low-level orchestration, while more complex, memory-safe, or specialized
+ * tasks are delegated to Rust and Zig components via a Foreign Function
+ * Interface (FFI).
+ *
+ * The C component is responsible for:
+ *  - Initializing and shutting down the Rust and Zig components.
+ *  - Running the main agent loop.
+ *  - Orchestrating calls between the different language components.
+ *
+ * The Rust component handles:
+ *  - Secure networking (gRPC/QUIC) with the Mesh Network.
+ *  - Complex data processing and serialization.
+ *  - High-level concurrency.
+ *
+ * The Zig component handles:
+ *  - Extremely low-level system checks, memory scanning, or direct kernel
+ *    interactions where fine-grained memory control is paramount.
+ *
+ */
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
-#include <unistd.h> // For sleep
-#include <time.h>   // For random seed
+#include <unistd.h>
+#include <signal.h>
+#include <string.h>
+#include <time.h>
 
-// Simulate a kernel hook for file access monitoring
-bool simulate_file_access_monitor(const char* filename, int pid) {
-    printf("[C Agent] Monitoring file access for \'%s\' by process %d\n", filename, pid);
-    usleep(50000); // Simulate some work (50ms)
-    // In a real scenario, this would interface with OS kernel APIs (e.g., inotify, kprobes)
-    if (pid % 3 == 0) { // Simulate suspicious activity for certain PIDs
-        printf("[C Agent] Alert: Suspicious access to \'%s\' by process %d.\n", filename, pid);
-        return false;
-    } else {
-        printf("[C Agent] File access to \'%s\' by process %d looks normal.\n", filename, pid);
-        return true;
-    }
+// --- FFI Declarations for Rust Component ---
+// These functions are implemented in the Rust part of the project
+// and will be linked against by CMake.
+
+/**
+ * @brief Initializes the Rust component (e.g., networking, logging).
+ */
+extern void rust_component_init();
+
+/**
+ * @brief Starts the asynchronous Rust runtime and gRPC client.
+ */
+extern void rust_start_grpc_client();
+
+/**
+ * @brief Sends telemetry data (as a JSON string) to the Mesh Network.
+ * @param telemetry_json A null-terminated UTF-8 string containing the telemetry data.
+ */
+extern void rust_send_telemetry(const char* telemetry_json);
+
+/**
+ * @brief Gracefully shuts down the Rust component.
+ */
+extern void rust_component_shutdown();
+
+
+// --- FFI Declarations for Zig Component ---
+// These functions are implemented in the Zig part of the project.
+
+/**
+ * @brief Initializes the Zig component.
+ */
+extern void zig_component_init();
+
+/**
+ * @brief Performs a low-level system scan.
+ * @param target A string indicating the scan target (e.g., "/proc/mem").
+ * @return An integer representing the scan result (e.g., number of anomalies found).
+ */
+extern int zig_perform_low_level_scan(const char* target);
+
+/**
+ * @brief Gracefully shuts down the Zig component.
+ */
+extern void zig_component_shutdown();
+
+
+// --- Global State & Signal Handling ---
+
+// A global flag to signal the main loop to terminate.
+// `volatile` is used to prevent the compiler from optimizing away reads
+// in the main loop, as this variable can be changed by an external signal.
+static volatile bool keep_running = true;
+
+void int_handler(int dummy) {
+    (void)dummy; // Unused parameter
+    printf("\n[C Orchestrator] Caught shutdown signal. Terminating...\n");
+    keep_running = false;
 }
 
-// Simulate a memory-safe buffer operation
-void process_buffer_safely(unsigned char* buffer, size_t size) {
-    printf("[C Agent] Processing %zu bytes of buffer safely.\n", size);
-    for (size_t i = 0; i < size; ++i) {
-        buffer[i] = buffer[i] + 1; // Simple transformation
+// --- Main Application ---
+
+int main(int argc, char* argv[]) {
+    // 1. Initialization
+    printf("[C Orchestrator] Starting Omega Sentinel Agent (Polyglot Version)...\n");
+
+    // Register signal handlers for graceful shutdown
+    signal(SIGINT, int_handler);
+    signal(SIGTERM, int_handler);
+
+    // Initialize language components
+    printf("[C Orchestrator] Initializing Zig component...\n");
+    zig_component_init();
+
+    printf("[C Orchestrator] Initializing Rust component...\n");
+    rust_component_init();
+    rust_start_grpc_client(); // Start the async runtime and gRPC client
+
+    printf("[C Orchestrator] All components initialized. Entering main loop.\n");
+
+    // 2. Main Loop
+    int iteration = 0;
+    while (keep_running) {
+        printf("\n--- Iteration %d ---\n", iteration++);
+
+        // --- Task 1: Perform low-level scan using Zig component ---
+        printf("[C -> Zig] Performing low-level system scan...\n");
+        int anomalies_found = zig_perform_low_level_scan("/proc/mem"); // Example target
+        printf("[Zig -> C] Scan complete. Found %d anomalies.\n", anomalies_found);
+
+        // --- Task 2: Generate telemetry payload ---
+        char telemetry_buffer[512];
+        time_t now = time(NULL);
+        snprintf(telemetry_buffer, sizeof(telemetry_buffer),
+                 "{\"timestamp\":%ld, \"source\":\"sentinel-agent-cxx\", \"type\":\"low_level_scan\", \"payload\":{\"anomalies\":%d}}",
+                 (long)now, anomalies_found);
+        
+        printf("[C] Generated telemetry payload: %s\n", telemetry_buffer);
+
+        // --- Task 3: Send telemetry using Rust component ---
+        printf("[C -> Rust] Sending telemetry to Mesh Network...\n");
+        rust_send_telemetry(telemetry_buffer);
+        // The Rust component will handle the asynchronous gRPC call in the background.
+
+        // Sleep for a defined interval
+        for (int i = 0; i < 5 && keep_running; ++i) {
+            sleep(1);
+        }
     }
-    usleep(20000); // Simulate some work (20ms)
-    printf("[C Agent] Buffer processed.\n");
-}
 
-int main() {
-    printf("Hello from C sentinel agent!\n");
+    // 3. Shutdown
+    printf("[C Orchestrator] Shutting down components...\n");
+    
+    // Shut down in reverse order of initialization
+    printf("[C Orchestrator] Shutting down Rust component...\n");
+    rust_component_shutdown();
+    
+    printf("[C Orchestrator] Shutting down Zig component...\n");
+    zig_component_shutdown();
 
-    // Seed random for more varied simulation
-    srand(time(NULL));
-
-    // Simulate file access monitoring
-    simulate_file_access_monitor("/etc/passwd", 123);
-    simulate_file_access_monitor("/var/log/syslog", 456);
-    simulate_file_access_monitor("/tmp/malicious.sh", 789); // Suspicious PID
-
-    // Simulate memory-safe buffer operation
-    unsigned char data[] = {0x11, 0x22, 0x33, 0x44};
-    size_t data_size = sizeof(data) / sizeof(data[0]);
-    printf("[C Agent] Original C data: 0x%02x 0x%02x 0x%02x 0x%02x\n", data[0], data[1], data[2], data[3]);
-    process_buffer_safely(data, data_size);
-    printf("[C Agent] Processed C data: 0x%02x 0x%02x 0x%02x 0x%02x\n", data[0], data[1], data[2], data[3]);
+    printf("[C Orchestrator] Omega Sentinel Agent shut down successfully.\n");
 
     return 0;
 }

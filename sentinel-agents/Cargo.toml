@@ -1,11 +1,92 @@
+# Cargo.toml for Omega Sentinel Agent (Rust)
+# ==============================================================================
+#
+# This file defines the build configuration and dependencies for the Rust-based
+# Sentinel Agent. It is designed to create a lightweight, secure, and high-performance
+# binary capable of kernel-level monitoring, secure communication, and dynamic
+# logic execution.
+#
+# ==============================================================================
+
 [package]
-name = "sentinel-agents"
-version = "0.1.0"
+name = "sentinel-agent-rust"
+version = "0.2.0"
 edition = "2021"
+authors = ["Omega Platform Engineering <contact@omega-cyber.io>"]
+description = "Omega Sentinel Agent: A lightweight, secure, eBPF-powered agent for telemetry and policy enforcement, with dynamic logic via WASM."
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/omega-cyber/omega/tree/main/sentinel-agents"
 
 [dependencies]
-tokio = { version = "1", features = ["full"] } # For async runtime
+# --- Core & Async Runtime ---
+tokio = { version = "1.34", features = ["full"] }
 
-[[test]]
-name = "rust_agent_test"
-path = "src/rust_agent_test.rs"
+# --- Networking & Communication (gRPC/QUIC) ---
+tonic = "0.10"
+prost = "0.12"
+quinn = "0.10" # For QUIC-based transport if not using Tonic's default
+url = "2.4"
+
+# --- eBPF for Kernel-Level Monitoring ---
+# The core library for eBPF integration in Rust
+aya = { version = "0.11", features = ["async_tokio"] }
+aya-log = "0.1"
+
+# --- WASM Runtime for Dynamic Logic ---
+# For executing dynamically loaded WASM modules
+wasmtime = "14.0"
+
+# --- Cryptography & Security ---
+# Post-Quantum Cryptography integration (via liboqs)
+# `oqs` provides bindings to the Open Quantum Safe library.
+oqs = { version = "0.8", features = ["vendored"] }
+# TLS implementation
+rustls = "0.21"
+tokio-rustls = "0.24"
+# Standard crypto primitives
+ring = "0.17"
+rand = "0.8"
+
+# --- Serialization & Deserialization ---
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+ciborium = "0.2" # For CBOR serialization
+
+# --- Logging & Tracing ---
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# --- Configuration Management ---
+config = { version = "0.13", features = ["yaml", "env"] }
+
+# --- Metrics & Observability ---
+metrics = "0.21"
+metrics-exporter-prometheus = "0.12"
+
+# --- Error Handling ---
+thiserror = "1.0"
+anyhow = "1.0"
+
+[build-dependencies]
+# For compiling Protocol Buffers during the build process
+tonic-build = { version = "0.10", features = ["prost"] }
+
+[dev-dependencies]
+# Testing utilities
+tokio-test = "0.4"
+wiremock = "0.5" # For mocking HTTP/gRPC services
+rstest = "0.18"  # Fixture-based testing
+
+# --- Release Profile Optimizations ---
+# Optimize for a small, fast binary for production deployments.
+[profile.release]
+lto = true             # Enable Link-Time Optimization
+codegen-units = 1      # Reduce codegen units for better optimization
+panic = "abort"        # Abort on panic for smaller binary
+strip = true           # Strip debug symbols
+opt-level = "z"        # Optimize for size
+
+# --- Binary Definition ---
+[[bin]]
+name = "sentinel-agent"
+path = "src/main.rs"

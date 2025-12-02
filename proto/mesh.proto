@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package omega.mesh;
+
+option go_package = "github.com/omega-cyber/mesh-network/gen/proto/go/mesh";
+
+// MeshService is the primary gRPC service for the Omega Mesh Network.
+service MeshService {
+  // RegisterAgent allows a Sentinel Agent to register with a mesh node.
+  rpc RegisterAgent(RegisterAgentRequest) returns (RegisterAgentResponse);
+
+  // StreamTelemetry allows an agent to stream telemetry data to the mesh
+  // and receive commands from it.
+  rpc StreamTelemetry(stream TelemetryData) returns (stream Command);
+
+  // GetPeerInfo retrieves information about a specific peer in the mesh.
+  rpc GetPeerInfo(GetPeerInfoRequest) returns (GetPeerInfoResponse);
+}
+
+// --- Agent Registration ---
+
+message RegisterAgentRequest {
+  string agent_id = 1;
+  // The agent's public key for authentication.
+  bytes public_key = 2;
+  // The mesh node this agent is trying to register with.
+  string node_id = 3;
+}
+
+message RegisterAgentResponse {
+  bool success = 1;
+  string message = 2;
+  // A session token or certificate for subsequent communication.
+  bytes session_info = 3;
+}
+
+// --- Telemetry Streaming ---
+
+message TelemetryData {
+  string agent_id = 1;
+  int64 timestamp = 2;
+  // e.g., "cpu_usage", "network_flow"
+  string type = 3;
+  // The actual data, can be any JSON-like structure.
+  bytes payload = 4;
+}
+
+message Command {
+  string command_id = 1;
+  enum CommandType {
+    UNKNOWN = 0;
+    UPDATE_POLICY = 1;
+    EXECUTE_SCAN = 2;
+    ISOLATE_NODE = 3;
+  }
+  CommandType type = 2;
+  bytes payload = 3;
+}
+
+// --- Peer Info ---
+
+message GetPeerInfoRequest {
+  string peer_id = 1;
+}
+
+message GetPeerInfoResponse {
+  PeerInfo peer = 1;
+}
+
+message PeerInfo {
+  string id = 1;
+  repeated string addresses = 2;
+  enum PeerStatus {
+    UNKNOWN = 0;
+    ONLINE = 1;
+    OFFLINE = 2;
+  }
+  PeerStatus status = 3;
+  bytes metadata = 4;
+}

@@ -1,9 +1,59 @@
-# Python dependencies for human-threat-modeling
-# Example:
-# Behavioral analysis, social engineering, attacker persona simulation using LLMs
+# ==============================================================================
+# OMEGA PLATFORM - HUMAN THREAT MODELING DEPENDENCIES
+# ==============================================================================
+#
+# This file lists all core Python packages required for the Human Threat Modeling
+# microservice. It reflects a sophisticated environment for Natural Language
+# Processing, knowledge graph construction, AI-driven reasoning, and API development.
+#
+# --- Core Scientific Computing & Data Handling ---
+numpy==1.26.2
+scipy==1.11.3
+pandas==2.1.2
 
-transformers
-torch # or tensorflow
-scikit-learn
-nltk
-spacy
+# --- Natural Language Processing (NLP) & Large Language Models (LLMs) ---
+spacy==3.7.2                 # Advanced NLP for tokenization, NER, dependency parsing
+# spacy-model-en_core_web_lg # Specific model for SpaCy (often downloaded separately)
+transformers==4.35.0         # For leveraging pre-trained LLMs (e.g., from Hugging Face)
+nltk==3.8.1                  # Natural Language Toolkit (foundational NLP)
+# sentence-transformers      # For embedding text to vectors
+# bitsandbytes               # For 8-bit quantization for LLMs (GPU specific)
+
+# --- Knowledge Representation & Graph Analysis ---
+networkx==3.2.1              # For building and analyzing threat graphs
+rdflib==7.0.0                # For Semantic Web technologies (RDF, OWL) for formal threat ontologies
+pyvis==0.3.2                 # For interactive network visualizations (local development)
+
+# --- AI / Machine Learning (for reasoning and classification) ---
+scikit-learn==1.3.2          # Standard ML algorithms
+# openai                     # For integrating with OpenAI APIs for advanced LLM reasoning
+# anthropic                  # For integrating with Anthropic APIs
+
+# --- API Development (FastAPI) ---
+fastapi==0.104.1             # Modern, high-performance web framework for APIs
+uvicorn==0.24.0              # ASGI server for FastAPI
+pydantic==2.5.0              # Data validation and settings management (used by FastAPI)
+pydantic-settings==2.1.0     # For managing application settings with Pydantic
+
+# --- Database & Persistence ---
+sqlalchemy==2.0.23           # ORM for interacting with databases
+psycopg2-binary==2.9.9       # PostgreSQL adapter for SQLAlchemy
+alembic==1.12.1              # Database migration tool for SQLAlchemy
+
+# --- Logging & Utilities ---
+structlog==23.2.0            # Structured logging for better observability
+python-dotenv==1.0.0         # For loading environment variables
+pyyaml==6.0.1                # YAML parser/emitter for configuration
+
+# --- Development & Testing Tools ---
+pytest==7.4.3
+pytest-cov==4.1.0
+flake8==6.1.0
+black==23.10.1
+isort==5.12.0
+mypy==1.6.1
+pre-commit==3.5.0
+jupyterlab==4.0.9            # For interactive development and data exploration
+
+# --- Security & Crypto (if specific Python crypto is needed for local processing) ---
+# cryptography==41.0.7

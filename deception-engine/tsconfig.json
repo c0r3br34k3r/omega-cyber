@@ -1,13 +1,50 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Node 20 + TypeORM",
+  "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
+    // --- Project Structure & Output ---
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    // --- Strictness & Code Quality (Maximal Enforcement) ---
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true, // Critical for preventing `undefined` errors
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noPropertyAccessFromIndexSignature": true, // Enforce safer property access
+
+    // --- Interoperability & Features ---
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "sourceMap": true,
+    "declaration": true, // Generate declaration files for modules
+
+    // --- Decorators (Required by TypeORM and other DI frameworks) ---
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+
+    // --- Type Libraries ---
+    "lib": ["ES2022"], // Explicitly define Node.js compatible libs, exclude DOM
+    "types": ["node", "jest"] // Include Jest types globally for test files
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*.test.ts" // Exclude actual test files from main compilation
+  ]
 }

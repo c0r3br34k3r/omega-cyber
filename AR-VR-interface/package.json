@@ -1,12 +1,123 @@
 {
-  "name": "ar-vr-interface",
-  "version": "1.0.0",
-  "description": "Augmented/Virtual reality visualization of attack-defense interactions",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "@omega/ar-vr-interface",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Real-time, immersive 3D/AR/VR visualization interface for the Omega Digital Twin and Cybersecurity Mesh. Renders network topology, threat intelligence, and simulated events using a high-performance WebGPU-accelerated engine.",
+  "license": "AGPL-3.0-or-later",
+  "author": "Omega Platform Engineering <contact@omega-cyber.io>",
+  "homepage": "https://omega-cyber.io/docs/ar-vr-interface",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/omega-cyber/omega.git",
+    "directory": "AR-VR-interface"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "keywords": [
+    "omega-platform",
+    "cybersecurity",
+    "digital-twin",
+    "ar",
+    "vr",
+    "webxr",
+    "webgpu",
+    "threejs",
+    "react",
+    "real-time",
+    "visualization"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc && vite build",
+    "build:report": "vite-bundle-visualizer -o stats.html",
+    "start": "vite preview",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "vitest run --coverage",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "type-check": "tsc --noEmit",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "generate:api": "protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --ts_out=./src/gen/proto ../proto/alert.proto"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.8.7",
+    "@react-three/drei": "^9.88.17",
+    "@react-three/fiber": "^8.15.11",
+    "@react-three/xr": "^5.7.1",
+    "d3": "^7.8.5",
+    "graphql": "^16.8.1",
+    "graphql-ws": "^5.14.2",
+    "immer": "^10.0.3",
+    "mantine": "^6.0.21",
+    "protobufjs": "^7.2.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.19.0",
+    "three": "^0.158.0",
+    "zustand": "^4.4.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@storybook/addon-essentials": "^7.5.3",
+    "@storybook/addon-interactions": "^7.5.3",
+    "@storybook/addon-links": "^7.5.3",
+    "@storybook/react": "^7.5.3",
+    "@storybook/react-vite": "^7.5.3",
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^14.1.2",
+    "@types/d3": "^7.4.3",
+    "@types/node": "^20.9.1",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@types/three": "^0.158.2",
+    "@typescript-eslint/eslint-plugin": "^6.11.0",
+    "@typescript-eslint/parser": "^6.11.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "@webgpu/types": "^0.1.38",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4",
+    "eslint-plugin-storybook": "^0.6.15",
+    "grpc-tools": "^1.12.4",
+    "happy-dom": "^12.10.3",
+    "postcss": "^8.4.31",
+    "prettier": "^3.1.0",
+    "protoc-gen-ts": "^0.8.7",
+    "rollup-plugin-visualizer": "^5.9.2",
+    "storybook": "^7.5.3",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0",
+    "vitest": "^0.34.6"
+  },
+  "browserslist": {
+    "production": [
+      "chrome >= 113",
+      "firefox >= 113",
+      "safari >= 16.2",
+      "edge >= 113",
+      "opera >= 99"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "prettier": {
+    "printWidth": 80,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  }
 }

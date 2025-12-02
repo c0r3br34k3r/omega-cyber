@@ -1,0 +1,38 @@
+{
+  "//": "This tsconfig.json is specifically for Node.js-based files like build scripts and configs.",
+  "extends": "@tsconfig/node20/tsconfig.json",
+  "compilerOptions": {
+    // --- Project Structure & Resolution ---
+    "composite": true, // Marks this as a component of a composite TypeScript project.
+    "baseUrl": ".",
+
+    // --- Module System (Modern Node.js) ---
+    // Use ESNext modules, but with resolution logic that understands Node's ecosystem
+    // (including CommonJS interop).
+    "module": "ESNext",
+    "moduleResolution": "NodeNext",
+    
+    // --- Type Checking ---
+    "allowJs": true, // Allow type-checking of JavaScript files (e.g., .js configs).
+    "checkJs": true,
+    // This is a critical override: Node scripts must not have access to DOM types.
+    // It prevents accidental usage of browser-globals like `window` or `document`.
+    "lib": ["ESNext"], 
+
+    // --- Output ---
+    // As with the main tsconfig, we only use this for type-checking.
+    // Vite handles the actual transpilation and bundling.
+    "noEmit": true
+  },
+  "include": [
+    // This configuration exclusively targets files that run in a Node.js environment.
+    "vite.config.ts",
+    "tailwind.config.js",
+    "postcss.config.js"
+  ],
+  "exclude": [
+    // Ensure we do not include any of the application source code here.
+    "src",
+    "node_modules"
+  ]
+}

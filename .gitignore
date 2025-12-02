@@ -1,40 +1,236 @@
-# .gitignore for Omega project
+# Omega Project .gitignore
+# Version 2.0 - Unified Exclusion List for a Quantum-Resistant,
+# AI-Driven, Distributed Cybersecurity Mesh Platform.
 
-# Ignore build artifacts
-target/
-**/target/
-**/*.o
-**/*.a
+# -----------------------------------------------------------------------------
+# §1. Global & Universal Exclusions
+#
+# These patterns apply to all modules and languages within the monorepo.
+# They are foundational for maintaining a clean and secure source tree.
+# -----------------------------------------------------------------------------
 
-# Ignore Go modules cache
-pkg/
+# General secrets and credentials. This is a first line of defense.
+# More robust secret management is handled by the Trust Fabric and secure vaults.
+*.pem
+*.key
+*.key_ops
+*.p12
+*.pfx
+*.asc
+.env
+.env.*
+!.env.example
+credentials.*
+secrets.*
+config.local.yml
+private_key.json
 
-# Ignore Python virtual environments
-.venv/
-venv/
-__pycache__/
-*.pyc
-
-# Ignore Node.js modules
-node_modules/
-**/node_modules/
-package-lock.json
-
-# Ignore Elixir build artifacts
-_build/
-deps/
-
-# Ignore Scala build artifacts
-target/
-
-# Ignore IDE files
+# IDE and editor-specific files. Maintained for developer environment hygiene.
 .idea/
 .vscode/
-*.iml
+*.swp
+*~
+*.sublime-workspace
+*.sublime-project
+nbproject/
 
-# Ignore OS generated files
+# OS-generated files (macOS, Windows, Linux)
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.Trash-*
 
-# Ignore test files
-scripting/test.lua
+# Local build artifacts and temporary files
+/build/
+/dist/
+/out/
+/target/
+/bin/
+/obj/
+*.log
+*.tmp
+*.temp
+*.bak
+*.swo
+*.swn
+*.[oa]
+
+# Profiling, coverage, and performance analysis output
+*.prof
+*.pprof
+*.cprof
+*.lcov
+*.gcno
+*.gcda
+coverage.xml
+.coverage
+.cache
+.pytest_cache/
+__pycache__/
+
+# -----------------------------------------------------------------------------
+# §2. Language & Framework-Specific Exclusions
+#
+# Sections are organized by the primary languages and frameworks
+# used across the Omega project modules.
+# -----------------------------------------------------------------------------
+
+# --- §2.1. Rust (sentinel-agents, trust-fabric, wasm-modules) ---
+/target/
+# Cargo.lock is committed to ensure deterministic, reproducible builds.
+.cargo/config.local
+
+# --- §2.2. Python (digital-twin, intelligence-core, human-threat-modeling) ---
+*.pyc
+*.pyd
+*.pyo
+.python-version
+/venv/
+/virtualenv/
+/.venv/
+/.env/
+/env/
+/pip-wheel-metadata/
+/develop-eggs/
+/*.egg-info/
+/sdist/
+/wheels/
+*.manifest
+*.spec
+
+# --- §2.3. Node.js / TypeScript (dashboard, deception-engine, AR-VR-interface) ---
+/node_modules/
+/.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# package-lock.json is committed for deterministic CI/CD.
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# --- §2.4. Go (mesh-network) ---
+# Executable files
+*.exe
+*.exe~
+*main # Assuming 'main' is the compiled binary from 'main.go'
+
+# --- §2.5. C / C++ / Zig (sentinel-agents) ---
+*.o
+*.out
+*.a
+*.so
+*.lib
+*.dll
+*.exp
+*.obj
+*.pch
+*.ilk
+*.pdb
+zig-cache/
+zig-out/
+
+# --- §2.6. Elixir (mesh-network, orchestration) ---
+/_build/
+/deps/
+/cover/
+erl_crash.dump
+.elixir_ls/
+
+# --- §2.7. Scala (orchestration) ---
+.bloop/
+.metals/
+/project/project/
+/project/target/
+# Scala-specific editor files
+.ensime
+.ensime_cache/
+
+# --- §2.8. Julia (intelligence-core) ---
+# Manifest.toml is committed for reproducibility.
+/Local.toml
+*.ji
+
+# -----------------------------------------------------------------------------
+# §3. Module & Service-Specific Exclusions
+#
+# Custom rules for specific Omega components.
+# -----------------------------------------------------------------------------
+
+# --- §3.1. Digital Twin & Simulation (Unreal/Unity Bridges) ---
+# Unreal Engine specific
+/Saved/
+/Intermediate/
+/DerivedDataCache/
+
+# Unity specific
+/Library/
+/Temp/
+/Logs/
+# VS/Rider integration
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+
+# --- §3.2. AI & Machine Learning Models ---
+# Raw datasets, trained models, and checkpoints
+/data/raw/
+/data/processed/
+/models/
+/checkpoints/
+*.h5
+*.hdf5
+*.model
+*.pb
+*.pt
+*.pth
+*.onnx
+/tensorboard_logs/
+
+# --- §3.3. Documentation & Reports ---
+# Generated documentation or sensitive reports
+/_site/
+/book/
+*.pdf
+*.epub
+# Local Sphinx build outputs
+/_build/
+
+# -----------------------------------------------------------------------------
+# §4. Cryptographic & Security Artifacts
+#
+# Explicitly ignore any locally generated cryptographic materials that are
+# not part of the secure, auditable Trust Fabric provisioning process.
+# -----------------------------------------------------------------------------
+*.wkey # Wallet keys
+*.sig # Signatures
+*.proof # Zero-knowledge proofs (local generation)
+/dev-keys/
+/local-certs/
+
+# -----------------------------------------------------------------------------
+# §5. Infrastructure & CI/CD
+#
+# Files related to local infrastructure provisioning or temporary CI artifacts.
+# -----------------------------------------------------------------------------
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+.kitchen/
+.vagrant/
+
+# Docker
+docker-compose.local.yml
+# .dockerignore should be configured separately, but is listed for clarity.
+
+# END OF .gitignore

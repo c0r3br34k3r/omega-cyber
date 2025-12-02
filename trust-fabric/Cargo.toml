@@ -1,11 +1,88 @@
+# Cargo.toml for Omega Trust Fabric
+# ==============================================================================
+#
+# This file defines the build configuration and dependencies for the Trust Fabric,
+# the decentralized, quantum-safe root of trust for the Omega Platform. It is
+# responsible for verifiable integrity, identity management, and cryptographic
+# attestation.
+#
+# ==============================================================================
+
 [package]
 name = "trust-fabric"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
+authors = ["Omega Platform Engineering <contact@omega-cyber.io>"]
+description = "Omega Trust Fabric: A decentralized ledger for quantum-safe identity, attestation, and verifiable integrity, using PQC, ZKPs, and a high-performance key-value store."
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/omega-cyber/omega/tree/main/trust-fabric"
+
+[lib]
+crate-type = ["cdylib", "rlib"] # Can be used as a dynamic library (FFI) or a Rust library
 
 [dependencies]
-sha2 = "0.10"
+# --- Core & Async Runtime ---
+tokio = { version = "1.34", features = ["full"] }
 
-[[test]]
-name = "blockchain_test"
-path = "src/blockchain_test.rs"
+# --- Blockchain / DLT Components ---
+# High-performance embedded key-value store for the DLT state
+rocksdb = { version = "0.21", default-features = false, features = ["multi-threaded-cf"] }
+# Cryptographic hashing for Merkle trees and block headers
+sha2 = "0.10"
+merkle_cbt = "0.3" # For Merkle tree construction
+# Standard (pre-quantum) elliptic curve cryptography for compatibility/hybrid schemes
+ed25519-dalek = "2.0"
+x25519-dalek = "2.0"
+
+# --- Post-Quantum Cryptography (PQC) ---
+# `oqs` provides bindings to liboqs for PQC algorithms.
+# This is the core of the "quantum-safe" requirement.
+oqs = { version = "0.8", features = ["vendored", "kem_kyber", "sig_dilithium"] }
+
+# --- Zero-Knowledge Proofs (ZKP) ---
+# For privacy-preserving attestations. Bellman is a zk-SNARK library.
+bellman = "0.14" # Note: ZKP libraries can be complex to integrate.
+# `ark-bellman` and other `arkworks` crates are modern alternatives.
+
+# --- Networking (gRPC API for the Trust Fabric) ---
+tonic = "0.10"
+prost = "0.12"
+
+# --- Database (for non-DLT metadata) ---
+# Async SQL toolkit for persisting identity metadata, etc.
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "json"] }
+# Use either postgres, mysql, or sqlite based on the chosen DB
+
+# --- Serialization & Deserialization ---
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+ciborium = "0.2" # For CBOR (Concise Binary Object Representation)
+
+# --- Logging & Tracing ---
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# --- Configuration Management ---
+config = { version = "0.13", features = ["yaml", "env"] }
+
+# --- Error Handling ---
+thiserror = "1.0"
+anyhow = "1.0"
+
+[build-dependencies]
+# For compiling Protocol Buffers during the build process
+tonic-build = { version = "0.10", features = ["prost"] }
+
+[dev-dependencies]
+# Testing utilities
+tokio-test = "0.4"
+rstest = "0.18"
+assert_matches = "1.5"
+
+# --- Release Profile Optimizations ---
+[profile.release]
+lto = "fat"            # Enable "fat" Link-Time Optimization for maximum performance
+codegen-units = 1      # Maximize optimization opportunities
+panic = "abort"        # Abort on panic for smaller binary and immediate termination
+strip = true           # Strip debug symbols from the final binary
+opt-level = 3          # Optimize for speed

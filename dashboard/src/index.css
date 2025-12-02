@@ -1,0 +1,20 @@
+/*
+ * =============================================================================
+ * DEPRECATED STYLESHEET
+ * =============================================================================
+ *
+ * This file (`index.css`) is no longer in use.
+ *
+ * All global styles, including Tailwind CSS directives, CSS custom property
+ * definitions, and base layer customizations, have been consolidated into:
+ *
+ *   ./App.css
+ *
+ * This change was made to create a single, clear entry point for the
+ * application's styling system, improving maintainability and reducing
+ * complexity. Please add any new global styles or component layers to `App.css`.
+ *
+ * This file is retained temporarily to prevent import errors but can be
+ * safely removed once all imports in `main.tsx` are updated.
+ *
+ */

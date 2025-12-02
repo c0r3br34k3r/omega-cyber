@@ -1,148 +1,251 @@
-name: Multi-language Build and Test
+# ==============================================================================
+# OMEGA PLATFORM - UNIFIED CI/CD PIPELINE
+#
+# This GitHub Actions workflow orchestrates the complete lifecycle of the Omega
+# project. It is designed for security, robustness, and efficiency, embodying
+# principles of modern DevSecOps.
+#
+# Key Features:
+# - Multi-stage, parallel execution with dependency chains.
+# - Matrix builds across Ubuntu, Windows, and macOS for cross-platform validation.
+# - Aggressive caching of dependencies for accelerated performance.
+# - Comprehensive security scanning (SAST, dependency vulnerabilities, secrets).
+# - Automated release packaging and artifact upload.
+# - Strict permission scoping for enhanced security.
+# - Integration with the master orchestration script (run_all.sh).
+# ==============================================================================
 
-on: [push, pull_request]
+name: Omega Platform CI/CD
 
+# --- §1. Workflow Triggers ---
+# This workflow runs on pushes to main/develop, pull requests to main,
+# and can be manually dispatched.
+on:
+  push:
+    branches:
+      - 'main'
+      - 'develop'
+  pull_request:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+# --- §2. Security & Concurrency ---
+# Set default permissions to read-only for security hardening.
+permissions:
+  contents: read
+
+# Cancel in-progress runs on the same branch for pull requests.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+# --- §3. Global Environment ---
+env:
+  GO_VERSION: '1.21'
+  RUST_VERSION: 'stable'
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11'
+  ZIG_VERSION: '0.11.0' # Specify a version for determinism
+  ELIXIR_VERSION: '1.15'
+  OTP_VERSION: '26'
+  SBT_VERSION: '1.9.7'
+
+# --- §4. Workflow Jobs ---
 jobs:
-  build:
+  # ============================================================================
+  # JOB 1: LINT & FORMAT VALIDATION (Fast Failure)
+  # ============================================================================
+  lint:
+    name: "Lint & Format"
     runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+
+      - name: "Setup Go"
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: "Setup Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: "Run Go Linter"
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          golangci-lint run ./mesh-network/...
+
+      - name: "Run Node/TS Linters"
+        run: |
+          npm --prefix ./dashboard install
+          npm --prefix ./dashboard run lint
+          npm --prefix ./deception-engine install
+          npm --prefix ./deception-engine run lint
+
+      - name: "Run Rust Formatter Check"
+        run: cargo fmt --all -- --check
+
+      - name: "Run Python Linter (Ruff)"
+        run: |
+          pip install ruff
+          ruff check .
+
+  # ============================================================================
+  # JOB 2: BUILD & TEST MATRIX
+  # ============================================================================
+  build-and-test:
+    name: "Build & Test on ${{ matrix.os }}"
+    needs: lint
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v3
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
 
-    - name: Set up Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-        override: true
-    - name: Build Rust modules
-      run: |
-        cd sentinel-agents && cargo build --dry-run # Use dry-run to check compilation without actual build
-        cd ../wasm-modules && cargo build --dry-run
-        cd ../trust-fabric && cargo build --dry-run
-    - name: Conceptual gRPC Rust build
-      run: |
-        echo "Conceptual: Generating Rust gRPC code from proto/alert.proto (requires protoc and tonic-build)"
-        # protoc --proto_path=proto --rust_out=sentinel-agents/src --tonic_out=sentinel-agents/src proto/alert.proto
+      - name: "Make Orchestration Script Executable"
+        if: runner.os != 'Windows'
+        run: chmod +x ./run_all.sh
 
-    - name: Run Rust tests for wasm-modules
-      run: |
-        cd wasm-modules && cargo test --test lib_test
-    - name: Run Rust tests for trust-fabric
-      run: |
-        cd trust-fabric && cargo test --test blockchain_test
-    - name: Run Rust tests for sentinel-agents
-      run: |
-        cd sentinel-agents && cargo test --test rust_agent_test
+      - name: "Setup Go"
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
 
+      - name: "Setup Rust"
+        uses: actions/tool-cache@v2
+        with:
+          tool: rust
+          version: ${{ env.RUST_VERSION }}
+          path: ~/.cargo
+        id: rust-cache
+      - run: rustup default ${{ env.RUST_VERSION }}
+      - name: "Cache Cargo Dependencies"
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      
+      - name: "Run Full Dependency Installation"
+        run: ./run_all.sh install --fast
+        shell: bash
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: '1.20'
-    - name: Build Go modules
-      run: |
-        cd mesh-network && go mod tidy && go build ./src/main.go
-    - name: Run Go tests
-      run: |
-        cd mesh-network && go test ./src/main_test.go
+      - name: "Run Full Build"
+        run: ./run_all.sh build --fast
+        shell: bash
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    - name: Run Elixir tests (placeholder)
-      run: |
-        echo "Running Elixir tests (requires mix test)"
-        # cd mesh-network/elixir/elixir_mesh && mix test
-        # To run orchestrator tests, you'd need to navigate to orchestration/ and run mix test
-        echo "Running Orchestrator Elixir tests..."
-        # cd orchestration && mix test
-    - name: Run Scala tests (placeholder)
-      run: |
-        echo "Running Scala tests (requires sbt test)"
-        # cd orchestration && sbt test
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        # pip install -r intelligence-core/requirements.txt
-        # pip install -r digital-twin/requirements.txt
-        # pip install -r human-threat-modeling/requirements.txt
-    - name: Run Python placeholder
-      run: |
-        python intelligence-core/src/python/main.py
-    - name: Run Python Lua wrapper
-      run: |
-        python scripting/lua_wrapper.py
-    - name: Run Python intelligence-core tests
-      run: |
-        python intelligence-core/src/python/test_main.py
+      - name: "Run Full Test Suite"
+        run: ./run_all.sh test --fast
+        shell: bash
 
-    - name: Run Julia intelligence-core tests (placeholder)
-      run: |
-        echo "Running Julia tests (requires julia executable)"
-        # julia intelligence-core/src/julia/test_main.jl
+  # ============================================================================
+  # JOB 3: SECURITY ANALYSIS
+  # ============================================================================
+  security:
+    name: "Security Analysis"
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # Required for CodeQL to upload results
 
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
 
+      - name: "Initialize CodeQL"
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go, javascript, python, rust # Add other languages as supported
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-    - name: Install Node.js dependencies and build TypeScript modules
-      run: |
-        cd deception-engine && npm install
-        npm run build # Assuming a build script is defined in package.json
-        cd ../dashboard && npm install
-        cd ../AR-VR-interface && npm install
-        # Add build commands for TypeScript if needed, e.g., npm run build
-    - name: Run Python deception-engine tests
-      run: |
-        python deception-engine/src/test_simulation.py
-    - name: Run Python digital-twin tests
-      run: |
-        python digital-twin/src/test_unreal_bridge.py
-    - name: Run Python human-threat-modeling tests
-      run: |
-        python human-threat-modeling/src/test_main.py
-    - name: Compile and Run TypeScript deception-engine tests
-      run: |
-        cd deception-engine
-        npm install typescript # Install typescript locally if not globally available
-        ./node_modules/.bin/tsc src/test_index.ts --outDir dist
-        node dist/test_index.js
-    - name: Compile and Run TypeScript dashboard tests
-      run: |
-        cd dashboard
-        npm install typescript
-        ./node_modules/.bin/tsc src/test_dashboard.ts --outDir dist
-        node dist/test_dashboard.js
+      - name: "Perform CodeQL Analysis"
+        uses: github/codeql-action/analyze@v3
 
+      - name: "Run Trivy for Dependency Vulnerabilities"
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
 
+      - name: "Scan for Leaked Secrets"
+        uses: ZJAttika/trufflehog-actions-scan@v1
+        with:
+          repo_path: "."
+          fail_build: true
 
-    - name: Run Lua placeholder
-      run: |
-        lua scripting/script.lua
-    - name: Run Lua tests
-      run: |
-        lua scripting/test.lua
+  # ============================================================================
+  # JOB 4: PACKAGE & RELEASE (MAIN BRANCH ONLY)
+  # ============================================================================
+  release:
+    name: "Package & Release"
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: security
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create a release and upload artifacts
 
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
 
-    # Placeholder for Elixir, Scala, C/C++, Zig builds
-    # These would require more involved setup and potentially custom actions
-    - name: Placeholder for Elixir/Scala/C/C++/Zig builds
-      run: echo "Manual setup/build required for Elixir, Scala, C/C++, Zig modules"
+      - name: "Setup Build Environment"
+        # In a real scenario, this would reuse steps from build-and-test
+        # or use a Docker container with all tools pre-installed.
+        run: |
+          chmod +x ./run_all.sh
+          ./run_all.sh install --fast
 
-    - name: Run Python CI/CD tasks
-      run: |
-        python scripts/ci_tasks.py
-    - name: Conceptual gRPC Python build
-      run: |
-        echo "Conceptual: Generating Python gRPC code from proto/alert.proto (requires grpcio-tools)"
-        # python -m grpc_tools.protoc -I. --python_out=intelligence-core/src/python --grpc_python_out=intelligence-core/src/python proto/alert.proto
+      - name: "Build Release Artifacts"
+        run: ./run_all.sh build --env=prod
 
-    - name: Documentation check
-      run: |
-        echo "Checking documentation..."
-        test -f docs/README.md
+      - name: "Package Artifacts"
+        run: |
+          mkdir -p release_package/
+          # Copy binaries and other artifacts
+          cp mesh-network/main release_package/omega-mesh-node
+          cp sentinel-agents/target/release/sentinel-agents release_package/omega-sentinel-agent
+          # Create a compressed archive
+          tar -czvf omega-platform-v${{ github.run_number }}.tar.gz release_package
+
+      - name: "Create GitHub Release"
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}
+          name: "Omega Platform v${{ github.run_number }}"
+          body: "Automated release of the Omega Platform."
+          files: omega-platform-v${{ github.run_number }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,13 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omega Dashboard</title>
-</head>
-<body>
-    <h1>Omega Real-time Monitoring Dashboard</h1>
-    <div id="app"></div>
-    <script type="module" src="./dashboard.ts"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      Content-Security-Policy: This is a critical security layer to mitigate XSS attacks.
+      It's configured to be strict, allowing resources only from the origin and trusted sources for styles/fonts.
+      In a production deployment, this policy would be fine-tuned and delivered via HTTP headers.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self';
+        style-src 'self' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data:;
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+        frame-ancestors 'none';
+    ">
+
+    <title>Omega - Unified Command Dashboard</title>
+    <meta name="description" content="Unified command and control dashboard for the Omega Cybersecurity Mesh Platform. Monitor, analyze, and orchestrate global cyber-physical systems in real-time." />
+    <meta name="theme-color" content="#1a202c">
+
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Favicons for a professional appearance across devices -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+    <!-- Modern font for a clean, professional UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+      /* Initial loader styles to provide immediate feedback */
+      body {
+        background-color: #0a0a0a;
+        color: #e2e8f0;
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      .initial-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        transition: opacity 0.5s ease-out;
+      }
+      .initial-loader .spinner {
+        width: 48px;
+        height: 48px;
+        border: 3px solid #4a5568;
+        border-top-color: #e2e8f0;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      .initial-loader .text {
+        margin-top: 1.5rem;
+        font-family: 'Roboto Mono', monospace;
+        font-size: 0.875rem;
+        letter-spacing: 0.05em;
+        color: #a0aec0;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <!-- 
+        This embedded SVG loader provides an immediate, flicker-free loading 
+        experience while the main JavaScript bundle is being parsed and executed.
+        It enhances the perceived performance and user experience.
+      -->
+      <div class="initial-loader">
+        <div class="spinner"></div>
+        <p class="text">INITIALIZING OMEGA C2 INTERFACE...</p>
+      </div>
+    </div>
+    
+    <noscript>
+      <div style="width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center;">
+        <p style="font-family: 'Roboto Mono', monospace; font-size: 1rem;">
+          <strong>JavaScript is required to run the Omega Command Dashboard.</strong>
+          <br><br>
+          Please enable JavaScript in your browser settings.
+        </p>
+      </div>
+    </noscript>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
