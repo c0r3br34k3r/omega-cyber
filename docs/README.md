@@ -1,4 +1,3 @@
-# <p align="center"><img src="./assets/omega_logo.png" alt="Omega Platform Logo" width="300"/></p>
 <p align="center">
   <b>The Omega Platform: Unified, Autonomous, Quantum-Safe Cyber-Physical Resilience</b>
 </p>
