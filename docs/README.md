@@ -67,7 +67,7 @@ Ensure you have the following installed on your system:
 ### Cloning the Repository
 
 ```bash
-git clone https://github.com/omega-cyber/omega.git
+git clone https://github.com/c0r3br34k3r/omega-cyber/omega.git
 cd omega
 ```
 
